@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <h2>Movie Detail</h2>
+
+  <ul>
+      <li>
+          Title: {{ movie.title }}
+      </li>
+      <li>
+          Release Date: {{ movie.released_at }}
+      </li>
+      <li >
+          <a href="{{ movie.imbd_url }}">IMBD URL</a>
+      </li>
+  </ul>
+{% endblock %}

@@ -7,7 +7,7 @@ from flask import (Flask, render_template, redirect, request, flash,
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import User, Rating, Movie, connect_to_db, db, feed_pairs_to_pearson
+from model import User, Rating, Movie, connect_to_db, db
 
 import correlation
 

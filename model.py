@@ -31,6 +31,25 @@ class User(db.Model):
 
         return "<User user_id ={} email={}>".format(self.user_id, self.email)
 
+    def feed_pairs_to_pearson(self, user_2):
+        paired_ratings = []
+
+        user_rating_dict = {}
+
+        for rating in self.rating:
+            user_rating_dict[rating.movie_id] = rating
+
+
+        for rating in user_2.rating:
+            if rating.movie_id in user_rating_dict:
+                paired_ratings.append((rating.score, user_rating_dict[rating.movie_id].score))
+
+
+        if paired_ratings:
+            return pearson(paired_ratings)
+        else:
+            return 0.0
+
     rating = db.relationship('Rating')
 
 # Put your Movie and Rating model classes here.
@@ -84,27 +103,6 @@ def connect_to_db(app):
     db.app = app
     db.init_app(app)
 
-def feed_pairs_to_pearson(user_1, user_2):
-    paired_ratings = []
-
-    user_rating_dict = {}
-
-    user1 = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_1).one()
-    user2 = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_2).one()
-
-    for rating in user1.rating:
-        user_rating_dict[rating.movie_id] = rating
-    print("USER RATING DICT", user_rating_dict)
-
-    for rating in user2.rating:
-        if rating.movie_id in user_rating_dict:
-            print("MOVIE ID:", rating.movie_id)
-            paired_ratings.append((rating.score, user_rating_dict[rating.movie_id].score))
-
-    print("PAIRED RATINGS ", paired_ratings)
-
-    if paired_ratings:
-        return pearson(paired_ratings)
 
 
 if __name__ == "__main__":

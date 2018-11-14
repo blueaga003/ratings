@@ -85,22 +85,9 @@ def rate_movie(movie_id):
 
     current_rating = Rating.query.filter_by(movie_id = movie_id,
                                         user_id = user_id).first()
-    print(current_rating)
-
 
     other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
     other_users = [r.user for r in other_ratings]
-
-
-    paired_ratings = []
-
-    user_rating_dict = {}
-    for rating in user.rating:
-        user_rating_dict[rating.movie_id] = rating
-
-
-    print(user_rating_dict)
-
 
     if not current_rating:
         new_rating = Rating(score=user_rating, movie_id=movie_id, user_id=user_id)
@@ -110,8 +97,19 @@ def rate_movie(movie_id):
         current_rating.update_rating(user_rating)
         db.session.commit()
 
-    return render_template("movie_details.html", movie=movie, user_rating = user_rating)
+    paired_ratings = []
 
+    user_rating_dict = {}
+    for rating in user.rating:
+        user_rating_dict[rating.movie_id] = rating
+    print(user_rating_dict)
+
+    for rating in other_ratings:
+        if rating.movie_id in user_rating_dict and rating.user_id != user_id:
+            print(rating.movie_id)
+            paired_ratings.append((rating.score, user_rating_dict[rating.movie_id].score))
+
+    return render_template("movie_details.html", movie=movie, user_rating = user_rating)
 
 
 @app.route('/register', methods = ['GET'])

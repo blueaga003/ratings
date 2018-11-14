@@ -13,13 +13,16 @@
       <li>
           Zipcode: {{ user.zipcode }}
       </li>
-<!--       <ul>
+      <li>
+        Ratings
+      </li>
+      <ul>
         {% for rating in user.rating %}
           <li>
-              {{ user.rating.score }}
+              {{rating.movie.title}}: {{ rating.score }}
             </a>
           </li>
         {% endfor %}
-      </ul> -->
+      </ul>
   </ul>
 {% endblock %}

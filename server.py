@@ -9,6 +9,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 
 from model import User, Rating, Movie, connect_to_db, db
 
+import correlation
+
 
 app = Flask(__name__)
 
@@ -39,13 +41,7 @@ def user_list():
 @app.route('/users/<user_id>')
 def show_user(user_id):
     """show user details."""
-    user = User.query.filter_by(user_id=user_id).first()
-
-    user_rating = Rating.query.filter_by(user_id=user_id).first()
-
-    user_movies = Movie.query.filter_by()
-    print(user_rating.score)
-    print("divide")
+    user = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_id).one()
 
     return render_template("user_details.html", user=user)
 
@@ -59,13 +55,62 @@ def movie_list():
 
     return render_template("movie_list.html", movies=movies)
 
-@app.route('/movies/<movie_id>')
+@app.route('/movies/<movie_id>', methods = ['GET'])
 def show_movie(movie_id):
     """show movie details."""
     movie = Movie.query.filter_by(movie_id=movie_id).first()
 
-    return render_template("movie_details.html", movie=movie)
+    user_id = session.get("user_id")
 
+    current_rating = Rating.query.filter_by(movie_id = movie_id,
+                                            user_id = user_id).first()
+
+    if current_rating is not None:
+        user_rating = current_rating.score
+    else:
+        user_rating = None
+
+    return render_template("movie_details.html", movie=movie, user_rating = user_rating)
+
+
+@app.route('/movies/<movie_id>', methods = ['POST'])
+def rate_movie(movie_id):
+    """allow user to rate movie"""
+    movie = Movie.query.filter_by(movie_id=movie_id).first()
+
+    user_id = session.get("user_id")
+    user = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_id).one()
+
+    user_rating = request.form.get('rating')
+
+    current_rating = Rating.query.filter_by(movie_id = movie_id,
+                                        user_id = user_id).first()
+    print(current_rating)
+
+
+    other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
+    other_users = [r.user for r in other_ratings]
+
+
+    paired_ratings = []
+
+    user_rating_dict = {}
+    for rating in user.rating:
+        user_rating_dict[rating.movie_id] = rating
+
+
+    print(user_rating_dict)
+
+
+    if not current_rating:
+        new_rating = Rating(score=user_rating, movie_id=movie_id, user_id=user_id)
+        db.session.add(new_rating)
+        db.session.commit()
+    else:
+        current_rating.update_rating(user_rating)
+        db.session.commit()
+
+    return render_template("movie_details.html", movie=movie, user_rating = user_rating)
 
 
 
@@ -118,23 +163,25 @@ def process_login():
 
 
     real_password = User.query.filter_by(email=email).first().password
+    user_id = User.query.filter_by(email=email).first().user_id
+    print(user_id)
 
     if password != real_password:
         flash("Incorrect password.")
         return redirect("/login")
 
-    session["logged_in_customer_email"] = email
+    session["user_id"] = user_id
     flash("Logged in.")
-    return redirect("/")
+    return redirect("/users/{}".format(user_id))
 
 
 @app.route("/logout")
 def process_logout():
     """Log user out."""
 
-    del session["logged_in_customer_email"]
+    del session["user_id"]
     flash("Logged out.")
-    return redirect("/melons")
+    return redirect("/")
 
 
 

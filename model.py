@@ -43,7 +43,9 @@ class Movie(db.Model):
     released_at = db.Column(db.DateTime, nullable=True)
     imbd_url = db.Column(db.String(200), nullable=True)
 
-    rating = db.relationship('Rating')
+    rating = db.relationship('Rating',
+                                backref = db.backref("movies",
+                                                    order_by=movie_id))
 
 class Rating(db.Model):
     """Ratings"""
@@ -51,8 +53,8 @@ class Rating(db.Model):
     __tablename__ = 'ratings'
 
     rating_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movies.movie_id'), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True,)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.movie_id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     score = db.Column(db.Integer, nullable=True)
 
 
@@ -63,6 +65,9 @@ class Rating(db.Model):
     movie = db.relationship("Movie",
                             backref = db.backref("ratings",
                                                     order_by=rating_id))
+
+    def update_rating(self, new_rating):
+        self.score = new_rating
 
 
 

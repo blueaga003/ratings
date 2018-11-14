@@ -13,5 +13,25 @@
       <li >
           <a href="{{ movie.imbd_url }}">IMBD URL</a>
       </li>
+      <li >
+          Current rating: {{user_rating}}
+           <form class="form-login" method="POST">
+
+        <div class="form-group">
+            <label for="rating-field" class="sr-only">Rating</label>
+            <input type="rating"
+                   name="rating"
+                   class="form-control input-lg"
+                   placeholder="Rating"
+                   required
+                   autofocus>
+        </div>
+
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Submit
+        </button>
+
+    </form>
+      </li>
   </ul>
 {% endblock %}

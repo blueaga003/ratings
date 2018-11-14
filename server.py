@@ -7,7 +7,7 @@ from flask import (Flask, render_template, redirect, request, flash,
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-from model import User, Rating, Movie, connect_to_db, db
+from model import User, Rating, Movie, connect_to_db, db, feed_pairs_to_pearson
 
 import correlation
 
@@ -96,18 +96,6 @@ def rate_movie(movie_id):
     else:
         current_rating.update_rating(user_rating)
         db.session.commit()
-
-    paired_ratings = []
-
-    user_rating_dict = {}
-    for rating in user.rating:
-        user_rating_dict[rating.movie_id] = rating
-    print(user_rating_dict)
-
-    for rating in other_ratings:
-        if rating.movie_id in user_rating_dict and rating.user_id != user_id:
-            print(rating.movie_id)
-            paired_ratings.append((rating.score, user_rating_dict[rating.movie_id].score))
 
     return render_template("movie_details.html", movie=movie, user_rating = user_rating)
 

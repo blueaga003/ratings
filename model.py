@@ -3,6 +3,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from correlation import pearson
 
+
 # This is the connection to the PostgreSQL database; we're getting this through
 # the Flask-SQLAlchemy helper library. On this, we can find the `session`
 # object, where we do most of our interactions (like committing, etc.)
@@ -82,6 +83,28 @@ def connect_to_db(app):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
+
+def feed_pairs_to_pearson(user_1, user_2):
+    paired_ratings = []
+
+    user_rating_dict = {}
+
+    user1 = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_1).one()
+    user2 = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_2).one()
+
+    for rating in user1.rating:
+        user_rating_dict[rating.movie_id] = rating
+    print("USER RATING DICT", user_rating_dict)
+
+    for rating in user2.rating:
+        if rating.movie_id in user_rating_dict:
+            print("MOVIE ID:", rating.movie_id)
+            paired_ratings.append((rating.score, user_rating_dict[rating.movie_id].score))
+
+    print("PAIRED RATINGS ", paired_ratings)
+
+    if paired_ratings:
+        return pearson(paired_ratings)
 
 
 if __name__ == "__main__":

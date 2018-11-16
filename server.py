@@ -97,17 +97,6 @@ def rate_movie(movie_id):
         current_rating.update_rating(user_rating)
         db.session.commit()
 
-    users = []
-
-    for other_user in other_users:
-        similar_users = other_user.feed_pairs_to_pearson(users.user_id)
-        pairs = users.append(similar_users, other_user)
-        print("PAIRS" pairs)
-
-
-    sorted_users = sorted(users)
-    print("SORTED USERS" users)
-
     return render_template("movie_details.html", movie=movie, user_rating = user_rating)
 
 

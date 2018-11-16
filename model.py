@@ -108,7 +108,31 @@ def connect_to_db(app):
     db.app = app
     db.init_app(app)
 
+def predict_rating(user_id, movie_id):
+    other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
 
+    other_users = [r.user for r in other_ratings]
+
+    user = User.query.get(user_id)
+
+    users = []
+
+    for other_user in other_users:
+        similarity = user.feed_pairs_to_pearson(other_user)
+        users.append((similarity, other_user))
+
+    sorted_users = sorted(users, reverse=True)
+
+    top_user = sorted_users[0]
+
+    top_user_rating = Rating.query.filter_by(movie_id = movie_id, user_id=user_id).one()
+    similarity = top_user[0]
+    print(top_user_rating * similarity)
+
+    # numerator = sum([similarity * score for similarity, score in users])
+    # denominator = sum([similarity for similarity, score in users])
+
+    # print(numerator/denominator)
 
 if __name__ == "__main__":
     # As a convenience, if we run this module interactively, it will leave

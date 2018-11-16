@@ -50,6 +50,11 @@ class User(db.Model):
         else:
             return 0.0
 
+    def __lt__(self, other):
+        """Less-than comparison."""
+        return self.user_id < other.user_id
+
+
     rating = db.relationship('Rating')
 
 # Put your Movie and Rating model classes here.

@@ -87,6 +87,8 @@ def rate_movie(movie_id):
                                         user_id = user_id).first()
 
     other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
+    for r in other_ratings:
+        print("RATING", r.score)
     other_users = [r.user for r in other_ratings]
 
     if not current_rating:
@@ -96,6 +98,14 @@ def rate_movie(movie_id):
     else:
         current_rating.update_rating(user_rating)
         db.session.commit()
+
+    users = []
+
+    for other_user in other_users:
+        similarity = user.feed_pairs_to_pearson(other_user)
+        users.append((similarity, other_user))
+
+    sorted_users = sorted(users, reverse=True)
 
     return render_template("movie_details.html", movie=movie, user_rating = user_rating)
 

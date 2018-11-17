@@ -67,7 +67,17 @@ class User(db.Model):
         similarities.sort(reverse=True)
         similarity, rating = similarities[0]
 
-        return rating.score * similarity
+        numerator = 0
+        denominator = 0
+
+        for similarity, rating in similarities:
+            numerator += (rating.score * similarity)
+            denominator += similarity
+
+
+        return numerator/denominator
+
+
 
     rating = db.relationship('Rating')
 

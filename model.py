@@ -54,6 +54,28 @@ class User(db.Model):
         """Less-than comparison."""
         return self.user_id < other.user_id
 
+    def predict_rating(self, movie):
+        """Predict user's rating of a movie."""
+
+        other_ratings = Rating.query.filter_by(movie_id = movie.movie_id).all()
+        other_users = [r.user for r in other_ratings]
+
+        user = User.query.get(self.user_id)
+        users = []
+
+        for other_user in other_users:
+            similarity = user.feed_pairs_to_pearson(other_user)
+            users.append((similarity, other_user))
+
+        sorted_users = sorted(users, reverse=True)
+
+        top_user = sorted_users[0]
+
+        top_user_rating = Rating.query.filter_by(movie_id = movie.movie_id, user_id=top_user[1].user_id).one()
+        similarity = top_user[0]
+        return(top_user_rating.score * similarity)
+
+
 
     rating = db.relationship('Rating')
 
@@ -108,26 +130,26 @@ def connect_to_db(app):
     db.app = app
     db.init_app(app)
 
-def predict_rating(user_id, movie_id):
-    other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
+# def predict_rating(user_id, movie_id):
+#     other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
 
-    other_users = [r.user for r in other_ratings]
+#     other_users = [r.user for r in other_ratings]
 
-    user = User.query.get(user_id)
+#     user = User.query.get(user_id)
 
-    users = []
+#     users = []
 
-    for other_user in other_users:
-        similarity = user.feed_pairs_to_pearson(other_user)
-        users.append((similarity, other_user))
+#     for other_user in other_users:
+#         similarity = user.feed_pairs_to_pearson(other_user)
+#         users.append((similarity, other_user))
 
-    sorted_users = sorted(users, reverse=True)
+#     sorted_users = sorted(users, reverse=True)
 
-    top_user = sorted_users[0]
+#     top_user = sorted_users[0]
 
-    top_user_rating = Rating.query.filter_by(movie_id = movie_id, user_id=user_id).one()
-    similarity = top_user[0]
-    print(top_user_rating * similarity)
+#     top_user_rating = Rating.query.filter_by(movie_id = movie_id, user_id=user_id).one()
+#     similarity = top_user[0]
+#     print(top_user_rating * similarity)
 
     # numerator = sum([similarity * score for similarity, score in users])
     # denominator = sum([similarity for similarity, score in users])

@@ -58,19 +58,29 @@ def movie_list():
 @app.route('/movies/<movie_id>', methods = ['GET'])
 def show_movie(movie_id):
     """show movie details."""
+
     movie = Movie.query.filter_by(movie_id=movie_id).first()
 
     user_id = session.get("user_id")
 
+    user = User.query.get(user_id)
+
     current_rating = Rating.query.filter_by(movie_id = movie_id,
                                             user_id = user_id).first()
+
+    prediction = None
 
     if current_rating is not None:
         user_rating = current_rating.score
     else:
         user_rating = None
+        prediction = user.predict_rating(movie)
 
-    return render_template("movie_details.html", movie=movie, user_rating = user_rating)
+
+    return render_template("movie_details.html",
+                            movie=movie,
+                            user_rating = user_rating,
+                            prediction = prediction)
 
 
 @app.route('/movies/<movie_id>', methods = ['POST'])
@@ -82,6 +92,7 @@ def rate_movie(movie_id):
     user = User.query.options(db.joinedload('ratings').joinedload('movies')).filter_by(user_id=user_id).one()
 
     user_rating = request.form.get('rating')
+    prediction = None
 
     current_rating = Rating.query.filter_by(movie_id = movie_id,
                                         user_id = user_id).first()
@@ -98,21 +109,7 @@ def rate_movie(movie_id):
         current_rating.update_rating(user_rating)
         db.session.commit()
 
-    # users = []
-
-    # for other_user in other_users:
-    #     similarity = user.feed_pairs_to_pearson(other_user)
-    #     score = other_user.rating.score
-    #     users.append((similarity, score))
-
-    # sorted_users = sorted(users, reverse=True)
-
-    # numerator = sum([similarity * score for similarity, score in users])
-    # denominator = sum([similarity for similarity, score in users])
-
-    # print(numerator/denominator)
-
-    return render_template("movie_details.html", movie=movie, user_rating = user_rating)
+    return render_template("movie_details.html", movie=movie, user_rating = user_rating,prediction = prediction)
 
 
 @app.route('/register', methods = ['GET'])

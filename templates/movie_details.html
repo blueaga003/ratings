@@ -15,6 +15,9 @@
       </li>
       <li >
           Current rating: {{user_rating}}
+          {% if prediction %}
+          <p>We predict that your score will be {{ prediction }}.</p>
+          {% endif %}
            <form class="form-login" method="POST">
 
         <div class="form-group">

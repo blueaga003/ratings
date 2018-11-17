@@ -62,10 +62,13 @@ class User(db.Model):
         similarities = [
             (self.feed_pairs_to_pearson(r.user), r)
             for r in other_ratings
+            if r.score > 0
             ]
 
+        if not similarities:
+            return None
+
         similarities.sort(reverse=True)
-        similarity, rating = similarities[0]
 
         numerator = 0
         denominator = 0
@@ -75,7 +78,7 @@ class User(db.Model):
             denominator += similarity
 
 
-        return numerator/denominator
+        return numerator // denominator
 
 
 

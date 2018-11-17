@@ -57,25 +57,17 @@ class User(db.Model):
     def predict_rating(self, movie):
         """Predict user's rating of a movie."""
 
-        other_ratings = Rating.query.filter_by(movie_id = movie.movie_id).all()
-        other_users = [r.user for r in other_ratings]
+        other_ratings = movie.rating
 
-        user = User.query.get(self.user_id)
-        users = []
+        similarities = [
+            (self.feed_pairs_to_pearson(r.user), r)
+            for r in other_ratings
+            ]
 
-        for other_user in other_users:
-            similarity = user.feed_pairs_to_pearson(other_user)
-            users.append((similarity, other_user))
+        similarities.sort(reverse=True)
+        similarity, rating = similarities[0]
 
-        sorted_users = sorted(users, reverse=True)
-
-        top_user = sorted_users[0]
-
-        top_user_rating = Rating.query.filter_by(movie_id = movie.movie_id, user_id=top_user[1].user_id).one()
-        similarity = top_user[0]
-        return(top_user_rating.score * similarity)
-
-
+        return rating.score * similarity
 
     rating = db.relationship('Rating')
 
@@ -116,6 +108,11 @@ class Rating(db.Model):
     def update_rating(self, new_rating):
         self.score = new_rating
 
+    def __lt__(self, other):
+        """Less-than comparison."""
+        return self.rating_id < other.rating_id
+
+
 
 
 ##############################################################################
@@ -129,32 +126,6 @@ def connect_to_db(app):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.app = app
     db.init_app(app)
-
-# def predict_rating(user_id, movie_id):
-#     other_ratings = Rating.query.filter_by(movie_id = movie_id).all()
-
-#     other_users = [r.user for r in other_ratings]
-
-#     user = User.query.get(user_id)
-
-#     users = []
-
-#     for other_user in other_users:
-#         similarity = user.feed_pairs_to_pearson(other_user)
-#         users.append((similarity, other_user))
-
-#     sorted_users = sorted(users, reverse=True)
-
-#     top_user = sorted_users[0]
-
-#     top_user_rating = Rating.query.filter_by(movie_id = movie_id, user_id=user_id).one()
-#     similarity = top_user[0]
-#     print(top_user_rating * similarity)
-
-    # numerator = sum([similarity * score for similarity, score in users])
-    # denominator = sum([similarity for similarity, score in users])
-
-    # print(numerator/denominator)
 
 if __name__ == "__main__":
     # As a convenience, if we run this module interactively, it will leave

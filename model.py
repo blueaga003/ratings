@@ -62,7 +62,7 @@ class User(db.Model):
         similarities = [
             (self.feed_pairs_to_pearson(r.user), r)
             for r in other_ratings
-            if r.score > 0
+            if self.feed_pairs_to_pearson(r.user) > 0
             ]
 
         if not similarities:
